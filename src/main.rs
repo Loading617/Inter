@@ -49,3 +49,22 @@ std::thread::spawn({
         app::awake();
     }
 });
+
+win.set_color(fltk::enums::Color::White);
+text_display.set_text_color(fltk::enums::Color::Black);
+send_button.set_color(fltk::enums::Color::Green);
+
+use std::fs::OpenOptions;
+use std::io::{Read, Write};
+
+fn save_messages(buffer: &TextBuffer) {
+    let mut file = OpenOptions::new().write(true).create(true).open("messages.txt").unwrap();
+    file.write_all(buffer.text().as_bytes()).unwrap();
+}
+
+fn load_messages(buffer: &mut TextBuffer) {
+    let mut file = OpenOptions::new().read(true).open("messages.txt").unwrap();
+    let mut content = String::new();
+    file.read_to_string(&mut content).unwrap();
+    buffer.set_text(&content);
+}
