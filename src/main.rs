@@ -68,3 +68,24 @@ fn load_messages(buffer: &mut TextBuffer) {
     file.read_to_string(&mut content).unwrap();
     buffer.set_text(&content);
 }
+
+use tokio::net::TcpStream;
+use tokio::io::{AsyncWriteExt, AsyncReadExt};
+
+async fn send_message_to_server(message: &str) {
+    let mut stream = TcpStream::connect("127.0.0.1:8080").await.unwrap();
+    stream.write_all(message.as_bytes()).await.unwrap();
+}
+
+async fn receive_messages_from_server() {
+    let mut stream = TcpStream::connect("127.0.0.1:8080").await.unwrap();
+    let mut buffer = vec![0; 1024];
+    loop {
+        let n = stream.read(&mut buffer).await.unwrap();
+        if n == 0 {
+            break;
+        }
+        let message = String::from_utf8_lossy(&buffer[..n]);
+        println!("Received: {}", message);
+    }
+}
