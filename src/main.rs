@@ -34,3 +34,18 @@ fn main() {
     win.show();
     app.run().unwrap();
 }
+
+text_display.wrap_mode(fltk::text::WrapMode::AtBounds, 0);
+
+std::thread::spawn({
+    let mut buffer = text_buffer.clone();
+    move || loop {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        app::lock().unwrap();
+        let current_text = buffer.text();
+        let new_message = format!("{}\nFriend: Hello!", current_text);
+        buffer.set_text(&new_message);
+        app::unlock();
+        app::awake();
+    }
+});
