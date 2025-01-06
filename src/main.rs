@@ -1,4 +1,6 @@
 use fltk::{app, button::Button, frame::Frame, input::Input, prelude::*, text::TextBuffer, text::TextDisplay, window::Window};
+use gstreamer::prelude::*;
+use std::sync::{Arc, Mutex};
 
 fn main() {
     let app = app::App::default();
@@ -88,4 +90,63 @@ async fn receive_messages_from_server() {
         let message = String::from_utf8_lossy(&buffer[..n]);
         println!("Received: {}", message);
     }
+}
+
+fn main() {
+    
+    gstreamer::init().unwrap();
+
+    let app = app::App::default();
+    let mut win = Window::new(100, 100, 640, 480, "Video Call");
+    let mut video_frame = Frame::new(10, 10, 620, 460, "");
+
+    win.end();
+    win.show();
+
+    
+    let buffer = Arc::new(Mutex::new(vec![0u8; 640 * 480 * 3]));
+
+    
+    let pipeline = gstreamer::parse_launch(
+        "videotestsrc ! video/x-raw,format=RGB,width=640,height=480 ! appsink name=sink",
+    )
+    .unwrap();
+    let appsink = pipeline
+        .dynamic_cast::<gstreamer::Pipeline>()
+        .unwrap()
+        .get_by_name("sink")
+        .unwrap()
+        .dynamic_cast::<gstreamer::AppSink>()
+        .unwrap();
+
+    
+    let buffer_clone = buffer.clone();
+    appsink.set_callbacks(
+        gstreamer::AppSinkCallbacks::builder()
+            .new_sample(move |sink| {
+                if let Some(sample) = sink.pull_sample().ok() {
+                    let buffer = sample.buffer().unwrap();
+                    let map = buffer.map_read().unwrap();
+
+                    let mut shared_buffer = buffer_clone.lock().unwrap();
+                    shared_buffer.copy_from_slice(&map);
+                }
+                Ok(gstreamer::FlowSuccess::Ok)
+            })
+            .build(),
+    );
+
+    pipeline.set_state(gstreamer::State::Playing).unwrap();
+
+    
+    app::add_idle(move || {
+        let buffer = buffer.lock().unwrap();
+        video_frame.draw(move |f| {
+            let img = fltk::image::RgbImage::new(&buffer, 640, 480, fltk::enums::ColorDepth::Rgb8)
+                .unwrap();
+            img.draw(f.x(), f.y(), f.w(), f.h());
+        });
+    });
+
+    app.run().unwrap();
 }
