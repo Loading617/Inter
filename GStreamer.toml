@@ -1,0 +1,2 @@
+[dependencies]
+gstreamer = "0.20"
