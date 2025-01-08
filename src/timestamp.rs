@@ -1,7 +1,7 @@
 use chrono::Local;
 
 struct MessageApp {
-    messages: Vec<(String, String)>, // (timestamp, message)
+    messages: Vec<(String, String)>,
     input_text: String,
 }
 
@@ -19,7 +19,6 @@ impl eframe::App for MessageApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Convo");
 
-            // Display messages
             egui::ScrollArea::vertical().show(ui, |ui| {
                 for (timestamp, message) in &self.messages {
                     ui.label(format!("[{}] {}", timestamp, message));
@@ -28,7 +27,6 @@ impl eframe::App for MessageApp {
 
             ui.separator();
 
-            // Input text box
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut self.input_text);
                 if ui.button("Send").clicked() {
