@@ -19,7 +19,7 @@ fn app(cx: Scope) -> Element {
 
     cx.render(rsx! {
         div {
-            h1 { "Rust Messenger" }
+            h1 { "Inter" }
             input {
                 value: "{input_text}",
                 oninput: |e| input_text.set(e.value.clone()),
