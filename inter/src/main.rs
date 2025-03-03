@@ -7,6 +7,6 @@ fn main() {
 
 fn App(cx: Scope) -> Element {
     cx.render(rsx! {
-        div { "Welcome to the messaging app!" }
+        div { "Inter" }
     })
 }
